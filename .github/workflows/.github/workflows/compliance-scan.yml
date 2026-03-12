@@ -1,0 +1,36 @@
+name: compliance-scan
+
+on:
+  schedule:
+    - cron: "0 2 * * *"  # 02:00 UTC nightly
+  workflow_dispatch:
+    inputs:
+      target_device:
+        description: "Device IP to scan (leave empty for all)"
+        required: false
+
+jobs:
+  compliance:
+    name: Nightly CIS Compliance Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r python/requirements.txt
+      - name: Run compliance report
+        run: |
+          python3 python/pan_compliance_report.py             --device "${TARGET_DEVICE:-$VMSERIES_01_MGMT_IP}"             --output compliance-report-$(date +%Y%m%d).html
+        env:
+          PANOS_USERNAME: ${{ secrets.PANOS_USERNAME }}
+          PANOS_PASSWORD: ${{ secrets.PANOS_PASSWORD }}
+          TARGET_DEVICE: ${{ inputs.target_device }}
+          VMSERIES_01_MGMT_IP: ${{ secrets.VMSERIES_01_MGMT_IP }}
+      - name: Upload compliance report
+        uses: actions/upload-artifact@v4
+        with:
+          name: compliance-report-${{ github.run_number }}
+          path: compliance-report-*.html
+          retention-days: 90
