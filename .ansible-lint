@@ -1,0 +1,49 @@
+---
+profile: min
+
+skip_list:
+  - fqcn[action]
+  - fqcn[action-core]
+  - name[casing]
+  - yaml[line-length]
+  - no-changed-when
+  - partial-become
+  - schema[tasks]
+
+exclude_paths:
+  - .git/
+  - .github/
+
+mock_modules:
+  - paloaltonetworks.panos.panos_mgtconfig
+  - paloaltonetworks.panos.panos_ntp
+  - paloaltonetworks.panos.panos_management_profile
+  - paloaltonetworks.panos.panos_interface
+  - paloaltonetworks.panos.panos_address_object
+  - paloaltonetworks.panos.panos_zone
+  - paloaltonetworks.panos.panos_administrator
+  - paloaltonetworks.panos.panos_password_profile
+  - paloaltonetworks.panos.panos_security_rule
+  - paloaltonetworks.panos.panos_nat_rule
+  - paloaltonetworks.panos.panos_ike_crypto_profile
+  - paloaltonetworks.panos.panos_ipsec_crypto_profile
+  - paloaltonetworks.panos.panos_ike_gateway
+  - paloaltonetworks.panos.panos_tunnel
+  - paloaltonetworks.panos.panos_ipsec_tunnel
+  - paloaltonetworks.panos.panos_static_route
+  - paloaltonetworks.panos.panos_op
+  - paloaltonetworks.panos.panos_ha
+  - paloaltonetworks.panos.panos_ha1
+  - paloaltonetworks.panos.panos_ha2
+  - paloaltonetworks.panos.panos_ha_peer
+  - paloaltonetworks.panos.panos_antivirus_security_profile
+  - paloaltonetworks.panos.panos_vulnerability_profile
+  - paloaltonetworks.panos.panos_url_filter
+  - paloaltonetworks.panos.panos_wildfire_analysis_profile
+  - paloaltonetworks.panos.panos_profile_group
+  - paloaltonetworks.panos.panos_syslog_server_profile
+  - paloaltonetworks.panos.panos_log_forwarding_profile
+  - paloaltonetworks.panos.panos_panorama
+  - paloaltonetworks.panos.panos_commit_panorama
+  - paloaltonetworks.panos.panos_commit_push
+  - paloaltonetworks.panos.panos_commit_firewall
