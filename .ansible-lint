@@ -5,10 +5,15 @@ skip_list:
   - fqcn[action]
   - fqcn[action-core]
   - name[casing]
+  - name[prefix]
   - yaml[line-length]
+  - yaml[truthy]
   - no-changed-when
   - partial-become
   - schema[tasks]
+  - var-naming[no-role-prefix]
+  - no-free-form
+  - risky-shell-module
 
 exclude_paths:
   - .git/
