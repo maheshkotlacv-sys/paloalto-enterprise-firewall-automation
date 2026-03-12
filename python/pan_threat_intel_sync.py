@@ -83,9 +83,7 @@ class ThreatIntelSync:
             return None
 
         sorted_iocs = sorted(indicators)
-        content = "
-".join(sorted_iocs) + "
-"
+        content = "\n".join(sorted_iocs) + "\n"
         content_hash = hashlib.sha256(content.encode()).hexdigest()[:8]
         timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
         key = f"edl/{edl_type}/{edl_name}.txt"
