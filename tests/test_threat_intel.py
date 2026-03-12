@@ -1,10 +1,8 @@
-"""Unit tests for pan_threat_intel_sync.py"""
-import pytest
-import sys
-import os
+import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'python'))
 
-from unittest.mock import patch, MagicMock
+import pytest
+from unittest.mock import patch
 from pan_threat_intel_sync import ThreatIntelSync
 
 
@@ -45,8 +43,8 @@ def test_invalid_domain_rejected(syncer):
 
 
 def test_whitelisted_domain_excluded(syncer):
-    assert syncer.is_whitelisted_domain("login.microsoftonline.microsoft.com") is True
     assert syncer.is_whitelisted_domain("s3.amazonaws.com") is True
+    assert syncer.is_whitelisted_domain("login.microsoft.com") is True
 
 
 def test_process_ip_feed_filters_whitelist(syncer):
