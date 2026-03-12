@@ -1,62 +1,78 @@
 package firewall.security
 
-import future.keywords.if
-import future.keywords.in
-
-# Block SSH from 0.0.0.0/0 to management security group
-deny[msg] if {
-  some i
-  rc := input.resource_changes[i]
+# sg-001: no public ingress except 80/443
+deny[msg] {
+  rc := input.resource_changes[_]
   rc.type == "aws_security_group"
-  rule := rc.change.after.ingress[_]
-  rule.from_port <= 22
-  rule.to_port >= 22
-  cidr := rule.cidr_blocks[_]
-  cidr in {"0.0.0.0/0", "::/0"}
-  msg := sprintf("[FW-SG-001] %s: SSH (port 22) must not be open to 0.0.0.0/0.", [rc.address])
-}
-
-# Block HTTPS management from 0.0.0.0/0
-deny[msg] if {
-  some i
-  rc := input.resource_changes[i]
-  rc.type == "aws_security_group"
-  contains(rc.address, "mgmt")
-  rule := rc.change.after.ingress[_]
-  rule.from_port <= 443
-  rule.to_port >= 443
-  cidr := rule.cidr_blocks[_]
+  ingress := rc.change.after.ingress[_]
+  not ingress.from_port == 80
+  not ingress.from_port == 443
+  cidr := ingress.cidr_blocks[_]
   cidr == "0.0.0.0/0"
-  msg := sprintf("[FW-SG-002] %s: HTTPS management (443) must not be open to 0.0.0.0/0.", [rc.address])
+  msg := sprintf("[SG-001] '%s': public ingress only allowed on 80/443", [rc.address])
 }
 
-# S3 bootstrap bucket must not be public
-deny[msg] if {
-  some i
-  rc := input.resource_changes[i]
+# sg-002: ssh never from internet
+deny[msg] {
+  rc := input.resource_changes[_]
+  rc.type == "aws_security_group"
+  ingress := rc.change.after.ingress[_]
+  ingress.from_port <= 22
+  ingress.to_port >= 22
+  cidr := ingress.cidr_blocks[_]
+  cidr == "0.0.0.0/0"
+  msg := sprintf("[SG-002] '%s': ssh open to internet", [rc.address])
+}
+
+# sg-003: rdp never from internet
+deny[msg] {
+  rc := input.resource_changes[_]
+  rc.type == "aws_security_group"
+  ingress := rc.change.after.ingress[_]
+  ingress.from_port <= 3389
+  ingress.to_port >= 3389
+  cidr := ingress.cidr_blocks[_]
+  cidr == "0.0.0.0/0"
+  msg := sprintf("[SG-003] '%s': rdp open to internet", [rc.address])
+}
+
+# s3-001: block_public_acls must be true
+deny[msg] {
+  rc := input.resource_changes[_]
   rc.type == "aws_s3_bucket_public_access_block"
-  contains(rc.address, "bootstrap")
   rc.change.after.block_public_acls == false
-  msg := sprintf("[FW-S3-001] %s: Bootstrap bucket must block public ACLs.", [rc.address])
+  msg := sprintf("[S3-001] '%s': block_public_acls must be true", [rc.address])
 }
 
-# VM-Series must use IMDSv2
-deny[msg] if {
-  some i
-  rc := input.resource_changes[i]
-  rc.type == "aws_instance"
-  contains(rc.address, "vmseries")
-  rc.change.after.metadata_options.http_tokens != "required"
-  msg := sprintf("[FW-EC2-001] %s: VM-Series must enforce IMDSv2 (http_tokens = required).", [rc.address])
+# s3-002: block_public_policy must be true
+deny[msg] {
+  rc := input.resource_changes[_]
+  rc.type == "aws_s3_bucket_public_access_block"
+  rc.change.after.block_public_policy == false
+  msg := sprintf("[S3-002] '%s': block_public_policy must be true", [rc.address])
 }
 
-# EBS root volume must be encrypted
-deny[msg] if {
-  some i
-  rc := input.resource_changes[i]
-  rc.type == "aws_instance"
-  contains(rc.address, "vmseries")
-  vol := rc.change.after.root_block_device[_]
-  vol.encrypted == false
-  msg := sprintf("[FW-EC2-002] %s: Root EBS volume must be encrypted.", [rc.address])
+# enc-001: ebs volumes must be encrypted
+deny[msg] {
+  rc := input.resource_changes[_]
+  rc.type == "aws_ebs_volume"
+  rc.change.after.encrypted == false
+  msg := sprintf("[ENC-001] '%s': ebs volume not encrypted", [rc.address])
+}
+
+# rds-001: rds must not be publicly accessible
+deny[msg] {
+  rc := input.resource_changes[_]
+  rc.type == "aws_db_instance"
+  rc.change.after.publicly_accessible == true
+  msg := sprintf("[RDS-001] '%s': rds instance is publicly accessible", [rc.address])
+}
+
+# nfw-001: network firewall delete protection required outside dev
+deny[msg] {
+  rc := input.resource_changes[_]
+  rc.type == "aws_networkfirewall_firewall"
+  rc.change.after.tags.Environment != "dev"
+  rc.change.after.delete_protection == false
+  msg := sprintf("[NFW-001] '%s': delete_protection must be enabled in non-dev environments", [rc.address])
 }
