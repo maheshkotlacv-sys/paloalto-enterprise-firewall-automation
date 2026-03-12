@@ -1,0 +1,23 @@
+---
+panos_version: "11.1"
+device_group: "aws-vm-series"
+template_stack: "aws-template-stack"
+template: "aws-base-template"
+virtual_router: "default"
+
+interfaces:
+  untrust:
+    name: "ethernet1/1"
+    zone: "UNTRUST"
+  trust:
+    name: "ethernet1/2"
+    zone: "TRUST"
+  ha1:
+    name: "ethernet1/3"
+  ha2:
+    name: "ethernet1/4"
+
+spoke_cidrs:
+  - "10.10.0.0/16"
+  - "10.20.0.0/16"
+  - "10.30.0.0/16"

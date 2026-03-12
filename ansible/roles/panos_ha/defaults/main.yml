@@ -1,0 +1,8 @@
+---
+ha_group_id: 1
+ha1_primary_ip: "192.168.255.1"
+ha1_secondary_ip: "192.168.255.2"
+ha2_primary_ip: "192.168.254.1"
+ha2_secondary_ip: "192.168.254.2"
+ha1_netmask: "255.255.255.252"
+ha2_netmask: "255.255.255.252"

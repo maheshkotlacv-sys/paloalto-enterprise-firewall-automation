@@ -1,0 +1,113 @@
+---
+# threat prevention profiles - av, vuln, url, wildfire
+# all tuned to block on critical/high, alert or default on lower severity
+# grouped together in profile group for easy attachment to security rules
+
+- name: create antivirus profile
+  paloaltonetworks.panos.panos_antivirus_security_profile:
+    provider: "{{ panos_provider }}"
+    name: "enterprise-av-profile"
+    description: "block on all decoders, wildfire inline scan"
+    botnet_lists:
+      - name: "default-paloalto-dns"
+        action: "sinkhole"
+        packet_capture: "single-packet"
+    decoders:
+      - name: "smtp"
+        action: "reset-both"
+        wildfire_action: "reset-both"
+      - name: "smb"
+        action: "reset-both"
+        wildfire_action: "reset-both"
+      - name: "http"
+        action: "reset-both"
+        wildfire_action: "reset-both"
+      - name: "ftp"
+        action: "reset-both"
+        wildfire_action: "reset-both"
+  notify: commit threat profiles
+
+- name: create vulnerability profile
+  paloaltonetworks.panos.panos_vulnerability_profile:
+    provider: "{{ panos_provider }}"
+    name: "enterprise-vuln-profile"
+    description: "block critical+high, default on medium/low"
+    rules:
+      - name: "block-critical-high"
+        action: "reset-both"
+        vendor_id: ["any"]
+        severity: ["critical", "high"]
+        cve: ["any"]
+        threat_name: "any"
+        host: "any"
+        category: "any"
+        packet_capture: "single-packet"
+      - name: "default-medium-low"
+        action: "default"
+        vendor_id: ["any"]
+        severity: ["medium", "low", "informational"]
+        cve: ["any"]
+        threat_name: "any"
+        host: "any"
+        category: "any"
+  notify: commit threat profiles
+
+- name: create url filtering profile
+  paloaltonetworks.panos.panos_url_filter:
+    provider: "{{ panos_provider }}"
+    name: "enterprise-url-profile"
+    description: "block malicious categories, alert on high risk"
+    action: "allow"
+    block_list_action: "block"
+    allow_list_action: "allow"
+    license_expired: "block"
+    blocked_categories:
+      - "malware"
+      - "phishing"
+      - "command-and-control"
+      - "hacking"
+      - "proxy-avoidance-and-anonymizers"
+      - "copyright-infringement"
+      - "abused-drugs"
+      - "weapons"
+      - "adult"
+    alert_categories:
+      - "peer-to-peer"
+      - "cryptocurrency"
+      - "newly-registered-domain"
+      - "dynamic-dns"
+    credential_enforcement:
+      mode: "ip-user-mapping"
+      log_severity: "medium"
+  notify: commit threat profiles
+
+- name: create wildfire profile
+  paloaltonetworks.panos.panos_wildfire_analysis_profile:
+    provider: "{{ panos_provider }}"
+    name: "enterprise-wildfire-profile"
+    description: "submit all file types both directions"
+    rules:
+      - name: "forward-all-files"
+        direction: "both"
+        analysis: "public-cloud"
+        file_type:
+          - "pe"
+          - "pdf"
+          - "ms-office"
+          - "jar"
+          - "flash"
+          - "apk"
+          - "elf"
+          - "email-link"
+  notify: commit threat profiles
+
+# bundle all profiles together - attach this group to security rules
+- name: create profile group
+  paloaltonetworks.panos.panos_profile_group:
+    provider: "{{ panos_provider }}"
+    name: "enterprise-threat-prevention"
+    virus: "enterprise-av-profile"
+    vulnerability: "enterprise-vuln-profile"
+    url_filtering: "enterprise-url-profile"
+    wildfire_analysis: "enterprise-wildfire-profile"
+  notify: commit threat profiles

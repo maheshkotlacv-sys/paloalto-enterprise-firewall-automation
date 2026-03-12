@@ -1,0 +1,33 @@
+project_name = "pa-enterprise"
+environment  = "prod"
+aws_region   = "us-east-1"
+
+# Networking — replace with actual VPC/subnet IDs
+security_vpc_id   = "vpc-0123456789abcdef0"
+mgmt_subnet_id    = "subnet-mgmt-placeholder"
+untrust_subnet_id = "subnet-untrust-placeholder"
+trust_subnet_id   = "subnet-trust-placeholder"
+ha_subnet_id      = "subnet-ha-placeholder"
+
+# VM-Series
+panos_version           = "11.1.2"
+vm_series_instance_type = "m5.xlarge"
+vm_series_count         = 2
+key_pair_name           = "pa-enterprise-keypair"
+
+# Bootstrap
+bootstrap_bucket_name = "pa-enterprise-bootstrap-prod-unique-suffix"
+
+# Panorama — consume from environment variables in CI, not plain text
+panorama_hostname           = "panorama.corp.example.com"
+panorama_secondary_hostname = "panorama-ha.corp.example.com"
+panorama_template_name      = "aws-vmseries-template-stack"
+panorama_device_group       = "aws-vmseries-prod"
+# panorama_vm_auth_key — set via TF_VAR_panorama_vm_auth_key env var
+# panorama_username     — set via TF_VAR_panorama_username env var
+# panorama_password     — set via TF_VAR_panorama_password env var
+
+# VPN
+dc_vpn_peer_ip = "203.0.113.1"
+dc_networks    = ["10.0.0.0/8", "172.16.0.0/12"]
+# vpn_pre_shared_key — set via TF_VAR_vpn_pre_shared_key env var

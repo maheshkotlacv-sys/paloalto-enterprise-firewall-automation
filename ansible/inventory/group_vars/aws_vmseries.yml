@@ -1,0 +1,34 @@
+---
+# vm-series specific vars - aws deployment
+
+zones:
+  - name: untrust
+    mode: layer3
+  - name: trust
+    mode: layer3
+  - name: vpn-tunnel
+    mode: layer3
+
+# interface config - maps to ENI device indices in terraform
+interfaces:
+  - name: ethernet1/1
+    zone: untrust
+    ip: "{{ ansible_host_untrust_ip | default('dhcp') }}"
+    comment: "untrust - internet/wan facing"
+  - name: ethernet1/2
+    zone: trust
+    ip: "{{ ansible_host_trust_ip | default('dhcp') }}"
+    comment: "trust - internal vpc"
+  - name: tunnel.1
+    zone: vpn-tunnel
+    comment: "dc-to-aws ipsec vpn"
+
+# vpn config - peer ip from env var, dont hardcode
+vpn:
+  ike_profile: ikev2-dc-aws
+  ipsec_profile: ipsec-dc-aws
+  tunnel_interface: tunnel.1
+  peer_ip: "{{ lookup('env', 'DC_VPN_PEER_IP') }}"
+  local_network: 100.64.0.0/16
+  remote_networks:
+    - 10.0.0.0/8

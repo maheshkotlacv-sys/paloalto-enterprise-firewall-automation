@@ -1,0 +1,93 @@
+---
+# active/passive ha setup
+# HA1 = heartbeat + config sync (port 28769)
+# HA2 = session sync
+# preemption OFF by default - dont want unnecessary failovers
+# run this on both primary and secondary, ha_role var controls which block runs
+
+- name: configure ha on primary
+  when: ha_role == "primary"
+  block:
+    - name: ha general settings - primary
+      paloaltonetworks.panos.panos_ha:
+        provider: "{{ panos_provider }}"
+        state: present
+        ha_mode: "active-passive"
+        ha_group_id: "{{ ha_group_id | default(1) }}"
+        ha_description: "aws vm-series ha pair"
+        enable_ha: true
+        device_priority: 10
+        preemptive: false
+
+    - name: ha1 interface config - primary
+      paloaltonetworks.panos.panos_ha1:
+        provider: "{{ panos_provider }}"
+        interface: "ethernet1/3"
+        ip_address: "{{ ha1_primary_ip }}"
+        netmask: "{{ ha1_netmask | default('255.255.255.252') }}"
+        port: 28769
+        encryption: true
+
+    - name: ha2 interface config - primary
+      paloaltonetworks.panos.panos_ha2:
+        provider: "{{ panos_provider }}"
+        interface: "ethernet1/4"
+        ip_address: "{{ ha2_primary_ip }}"
+        netmask: "{{ ha2_netmask | default('255.255.255.252') }}"
+        enable_session_sync: true
+        transport: "ethernet"
+
+    - name: set peer address (secondary ha1 ip)
+      paloaltonetworks.panos.panos_ha_peer:
+        provider: "{{ panos_provider }}"
+        ha1_ip_address: "{{ ha1_secondary_ip }}"
+        ha1_backup_ip_address: "{{ ha1_backup_secondary_ip | default('') }}"
+  notify: commit ha config
+
+- name: configure ha on secondary
+  when: ha_role == "secondary"
+  block:
+    - name: ha general settings - secondary
+      paloaltonetworks.panos.panos_ha:
+        provider: "{{ panos_provider }}"
+        state: present
+        ha_mode: "active-passive"
+        ha_group_id: "{{ ha_group_id | default(1) }}"
+        ha_description: "aws vm-series ha pair"
+        enable_ha: true
+        device_priority: 20  # higher = lower priority = secondary
+        preemptive: false
+
+    - name: ha1 interface config - secondary
+      paloaltonetworks.panos.panos_ha1:
+        provider: "{{ panos_provider }}"
+        interface: "ethernet1/3"
+        ip_address: "{{ ha1_secondary_ip }}"
+        netmask: "{{ ha1_netmask | default('255.255.255.252') }}"
+        port: 28769
+        encryption: true
+
+    - name: ha2 interface config - secondary
+      paloaltonetworks.panos.panos_ha2:
+        provider: "{{ panos_provider }}"
+        interface: "ethernet1/4"
+        ip_address: "{{ ha2_secondary_ip }}"
+        netmask: "{{ ha2_netmask | default('255.255.255.252') }}"
+        enable_session_sync: true
+        transport: "ethernet"
+
+    - name: set peer address (primary ha1 ip)
+      paloaltonetworks.panos.panos_ha_peer:
+        provider: "{{ panos_provider }}"
+        ha1_ip_address: "{{ ha1_primary_ip }}"
+  notify: commit ha config
+
+- name: check ha state after config
+  paloaltonetworks.panos.panos_op:
+    provider: "{{ panos_provider }}"
+    cmd: "show ha state"
+  register: ha_state
+
+- name: show ha state
+  ansible.builtin.debug:
+    msg: "ha state: {{ ha_state.stdout }}"

@@ -1,0 +1,21 @@
+---
+zones:
+  - name: untrust
+    mode: layer3
+  - name: trust-servers
+    mode: layer3
+  - name: trust-users
+    mode: layer3
+  - name: vpn-tunnel
+    mode: layer3
+  - name: dmz
+    mode: layer3
+
+vpn:
+  ike_profile: ikev2-dc-aws
+  ipsec_profile: ipsec-dc-aws
+  tunnel_interface: tunnel.1
+  peer_ip: "{{ lookup('env', 'AWS_VPN_PEER_IP') }}"
+  local_network: 10.0.0.0/8
+  remote_networks:
+    - 100.64.0.0/16

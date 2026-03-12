@@ -1,0 +1,9 @@
+---
+- name: wait for commit
+  paloaltonetworks.panos.panos_op:
+    provider: "{{ panos_provider }}"
+    cmd: "show jobs all"
+  register: job_result
+  until: "'FIN' in job_result.stdout"
+  retries: 30
+  delay: 10

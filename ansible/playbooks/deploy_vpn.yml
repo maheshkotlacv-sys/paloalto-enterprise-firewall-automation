@@ -1,0 +1,25 @@
+---
+- name: deploy dc-to-aws vpn config
+  hosts: aws_vmseries:dc_firewalls
+  gather_facts: false
+  roles:
+    - panos_vpn
+
+- name: verify vpn tunnel status
+  hosts: aws_vmseries
+  gather_facts: false
+  tasks:
+    - name: check tunnel operational state
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ panos_provider }}"
+        cmd: "show vpn ike-sa"
+      register: ike_status
+
+    - name: display ike sa status
+      ansible.builtin.debug:
+        var: ike_status.stdout
+
+    - name: fail if tunnel not established
+      ansible.builtin.fail:
+        msg: "ike sa not established - vpn tunnel is down"
+      when: "'IKE phase-1 SA' not in ike_status.stdout"

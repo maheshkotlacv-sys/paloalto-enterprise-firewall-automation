@@ -1,0 +1,57 @@
+---
+# panos api creds - override per host if needed
+# actual values in vault, never commit plaintext here
+panos_provider:
+  ip_address: "{{ ansible_host }}"
+  username: "{{ vault_panos_username }}"
+  password: "{{ vault_panos_password }}"
+
+panorama_provider:
+  ip_address: "{{ panorama_ip }}"
+  username: "{{ vault_panorama_username }}"
+  password: "{{ vault_panorama_password }}"
+
+panorama_ip: "panorama.example.internal"
+
+# ntp - aws ntp endpoint for cloud-hosted devices
+ntp_primary: "169.254.169.123"
+ntp_secondary: "pool.ntp.org"
+
+dns_primary: "10.0.0.2"
+dns_secondary: "8.8.8.8"
+
+syslog_server: "10.0.50.10"
+syslog_port: 514
+syslog_transport: UDP
+
+# zone names used across security policy roles
+# change here if your naming convention differs
+zones:
+  untrust: "UNTRUST"
+  trust: "TRUST"
+  dmz: "DMZ"
+  vpn: "VPN-ZONE"
+  mgmt: "MGMT"
+
+# rfc1918 + internal supernets - used in baseline and policy roles
+address_objects:
+  - name: "RFC1918-10"
+    value: "10.0.0.0/8"
+    description: "rfc1918 class a"
+    tag: ["internal", "rfc1918"]
+  - name: "RFC1918-172"
+    value: "172.16.0.0/12"
+    description: "rfc1918 class b"
+    tag: ["internal", "rfc1918"]
+  - name: "RFC1918-192"
+    value: "192.168.0.0/16"
+    description: "rfc1918 class c"
+    tag: ["internal", "rfc1918"]
+  - name: "AWS-VPC-CIDR"
+    value: "100.64.0.0/16"
+    description: "aws inspection vpc"
+    tag: ["aws", "internal"]
+  - name: "DC-NETWORK"
+    value: "10.100.0.0/16"
+    description: "on-prem dc network"
+    tag: ["datacenter", "internal"]

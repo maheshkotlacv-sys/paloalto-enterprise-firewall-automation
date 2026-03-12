@@ -1,0 +1,97 @@
+---
+# baseline hardening - run first on any new device before touching policy
+# covers cis panos benchmark section 1 controls
+
+- name: set hostname
+  paloaltonetworks.panos.panos_mgtconfig:
+    provider: "{{ panos_provider }}"
+    hostname: "{{ inventory_hostname }}"
+    domain: "{{ domain_name | default('example.internal') }}"
+  notify: commit config
+
+- name: configure ntp
+  paloaltonetworks.panos.panos_ntp:
+    provider: "{{ panos_provider }}"
+    ntp_server_primary: "{{ ntp_primary }}"
+    ntp_server_secondary: "{{ ntp_secondary }}"
+  notify: commit config
+
+- name: configure dns
+  paloaltonetworks.panos.panos_mgtconfig:
+    provider: "{{ panos_provider }}"
+    dns_server_primary: "{{ dns_primary }}"
+    dns_server_secondary: "{{ dns_secondary }}"
+  notify: commit config
+
+- name: set login banner
+  paloaltonetworks.panos.panos_mgtconfig:
+    provider: "{{ panos_provider }}"
+    login_banner: |
+      AUTHORISED USE ONLY. This system is monitored and all activity logged.
+      Unauthorised access will be prosecuted.
+  notify: commit config
+
+# restrict mgmt services - https+ssh+ping only, no telnet or http
+- name: create restricted mgmt profile
+  paloaltonetworks.panos.panos_management_profile:
+    provider: "{{ panos_provider }}"
+    name: "mgmt-profile-restricted"
+    https: true
+    ssh: true
+    ping: true
+    telnet: false
+    http: false
+    snmp: false
+  notify: commit config
+
+- name: apply restricted profile to mgmt interface
+  paloaltonetworks.panos.panos_interface:
+    provider: "{{ panos_provider }}"
+    if_name: "{{ mgmt_interface | default('Management') }}"
+    management_profile: "mgmt-profile-restricted"
+  notify: commit config
+
+- name: create address objects
+  paloaltonetworks.panos.panos_address_object:
+    provider: "{{ panos_provider }}"
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    description: "{{ item.description }}"
+    tag: "{{ item.tag | default([]) }}"
+  loop: "{{ address_objects }}"
+  notify: commit config
+
+- name: configure security zones
+  paloaltonetworks.panos.panos_zone:
+    provider: "{{ panos_provider }}"
+    zone: "{{ item.value }}"
+    mode: "layer3"
+    enable_userid: "{{ item.key in ['trust', 'dmz'] }}"
+  loop: "{{ zones | dict2items }}"
+  notify: commit config
+
+# read-only svc account for automation - not for human logins
+- name: create automation svc account
+  paloaltonetworks.panos.panos_administrator:
+    provider: "{{ panos_provider }}"
+    admin_username: "svc-automation"
+    admin_password: "{{ vault_automation_password }}"
+    role: "superreader"
+    authentication_profile: "local-db"
+  notify: commit config
+
+- name: configure password policy
+  paloaltonetworks.panos.panos_password_profile:
+    provider: "{{ panos_provider }}"
+    name: "enterprise-password-policy"
+    minimum_length: 12
+    minimum_uppercase_letters: 1
+    minimum_lowercase_letters: 1
+    minimum_numeric_letters: 1
+    minimum_special_characters: 1
+    block_repeated_characters: 4
+    password_history_count: 10
+    password_change_on_first_login: true
+    password_expiration_period: 90
+    password_expiration_warning_period: 14
+  notify: commit config

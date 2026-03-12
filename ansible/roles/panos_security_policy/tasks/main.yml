@@ -1,0 +1,134 @@
+---
+# zone-based app-id security policy
+# no any/any rules - every rule needs specific apps
+# all allow rules get threat prevention profile attached
+
+- name: create threat profile group
+  paloaltonetworks.panos.panos_profile_group:
+    provider: "{{ panos_provider }}"
+    name: "enterprise-threat-prevention"
+    virus: "enterprise-av-profile"
+    vulnerability: "enterprise-vuln-profile"
+    url_filtering: "enterprise-url-profile"
+    wildfire_analysis: "enterprise-wildfire-profile"
+    data_filtering: "enterprise-data-filtering"
+
+# east-west trust traffic - internal services only
+- name: allow internal services within trust zone
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ panos_provider }}"
+    rule_name: "ALLOW-TRUST-INTERNAL-SERVICES"
+    description: "internal services between trust segments - ad, dns, kerberos etc"
+    source_zone: ["TRUST"]
+    destination_zone: ["TRUST"]
+    source_ip: ["RFC1918-10", "RFC1918-172", "RFC1918-192"]
+    destination_ip: ["RFC1918-10", "RFC1918-172", "RFC1918-192"]
+    application: ["active-directory", "dns", "kerberos", "ldap", "ntp", "syslog"]
+    service: ["application-default"]
+    action: "allow"
+    log_start: false
+    log_end: true
+    log_setting: "default-log-forwarding"
+    profile_setting: "enterprise-threat-prevention"
+    tag: ["internal-only"]
+    location: "top"
+  notify: commit security policy
+
+# dc hybrid - traffic coming through vpn tunnel
+- name: allow dc vpn traffic to aws trust
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ panos_provider }}"
+    rule_name: "ALLOW-VPN-TO-TRUST-DC-SERVICES"
+    description: "dc to aws - approved apps only"
+    source_zone: ["VPN-ZONE"]
+    destination_zone: ["TRUST"]
+    source_ip: ["DC-NETWORK"]
+    destination_ip: ["AWS-VPC-CIDR"]
+    application: ["ssh", "https", "ping", "mysql", "oracle", "mssql"]
+    service: ["application-default"]
+    action: "allow"
+    log_start: false
+    log_end: true
+    log_setting: "default-log-forwarding"
+    profile_setting: "enterprise-threat-prevention"
+    tag: ["vpn-traffic"]
+  notify: commit security policy
+
+- name: allow aws trust traffic to dc
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ panos_provider }}"
+    rule_name: "ALLOW-TRUST-TO-VPN-AWS-SERVICES"
+    description: "aws workloads to dc - ad, file services"
+    source_zone: ["TRUST"]
+    destination_zone: ["VPN-ZONE"]
+    source_ip: ["AWS-VPC-CIDR"]
+    destination_ip: ["DC-NETWORK"]
+    application: ["active-directory", "kerberos", "ldap", "nfs", "smb"]
+    service: ["application-default"]
+    action: "allow"
+    log_start: false
+    log_end: true
+    log_setting: "default-log-forwarding"
+    profile_setting: "enterprise-threat-prevention"
+    tag: ["vpn-traffic"]
+  notify: commit security policy
+
+# internet egress - approved apps, full inspection
+- name: allow trust internet egress
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ panos_provider }}"
+    rule_name: "ALLOW-TRUST-INTERNET-EGRESS"
+    description: "outbound internet - web, dns, ntp, package managers"
+    source_zone: ["TRUST"]
+    destination_zone: ["UNTRUST"]
+    source_ip: ["any"]
+    destination_ip: ["any"]
+    application: ["web-browsing", "ssl", "dns", "ntp", "apt-get", "yum"]
+    service: ["application-default"]
+    action: "allow"
+    log_start: false
+    log_end: true
+    log_setting: "default-log-forwarding"
+    profile_setting: "enterprise-threat-prevention"
+    tag: ["internet-access"]
+  notify: commit security policy
+
+# explicit deny with logging - dont rely on default deny
+- name: deny all uninitiated inbound from untrust
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ panos_provider }}"
+    rule_name: "DENY-ALL-UNTRUST-INBOUND"
+    description: "catch uninitiated inbound - log it"
+    source_zone: ["UNTRUST"]
+    destination_zone: ["TRUST", "DMZ", "VPN-ZONE", "MGMT"]
+    source_ip: ["any"]
+    destination_ip: ["any"]
+    application: ["any"]
+    service: ["any"]
+    action: "deny"
+    log_start: false
+    log_end: true
+    log_setting: "default-log-forwarding"
+    tag: ["high-risk"]
+    location: "bottom"
+  notify: commit security policy
+
+# cleanup - everything unmatched gets logged
+- name: cleanup deny rule
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ panos_provider }}"
+    rule_name: "DENY-ALL-CLEANUP"
+    description: "catch-all - deny and log anything not matched above"
+    source_zone: ["any"]
+    destination_zone: ["any"]
+    source_ip: ["any"]
+    destination_ip: ["any"]
+    application: ["any"]
+    service: ["any"]
+    action: "deny"
+    log_start: false
+    log_end: true
+    log_setting: "default-log-forwarding"
+    tag: ["high-risk"]
+    location: "bottom"
+  notify: commit security policy

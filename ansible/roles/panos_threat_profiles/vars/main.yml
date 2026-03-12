@@ -1,0 +1,62 @@
+---
+antivirus_profile:
+  name: strict-av
+  description: "Strict AV profile - block all threat categories"
+  decoders:
+    - name: http
+      action: reset-both
+      wildfire_action: reset-both
+    - name: smtp
+      action: reset-both
+      wildfire_action: reset-both
+    - name: ftp
+      action: reset-both
+      wildfire_action: reset-both
+
+vulnerability_profile:
+  name: strict-vuln
+  description: "Strict vulnerability protection"
+  rules:
+    - name: block-critical-high
+      severity: [critical, high]
+      action: reset-both
+      packet_capture: single-packet
+    - name: alert-medium
+      severity: [medium]
+      action: alert
+    - name: default-low-info
+      severity: [low, informational]
+      action: default
+
+url_filtering_profile:
+  name: strict-url
+  description: "Block malicious categories, alert on risky"
+  blocked_categories:
+    - malware
+    - phishing
+    - command-and-control
+    - hacking
+    - questionable
+    - adult
+    - gambling
+  alert_categories:
+    - social-networking
+    - streaming-media
+    - peer-to-peer
+
+wildfire_profile:
+  name: strict-wildfire
+  description: "Submit all unknown files to WildFire"
+  rules:
+    - name: forward-all
+      application: [any]
+      file_type: [any]
+      direction: both
+      analysis: public-cloud
+
+security_profile_group:
+  name: strict-security
+  av: strict-av
+  vulnerability: strict-vuln
+  url_filtering: strict-url
+  wildfire_analysis: strict-wildfire

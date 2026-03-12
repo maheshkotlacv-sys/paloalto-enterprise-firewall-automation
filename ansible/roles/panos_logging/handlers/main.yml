@@ -1,0 +1,6 @@
+---
+- name: commit logging config
+  paloaltonetworks.panos.panos_commit_firewall:
+    provider: "{{ panos_provider }}"
+    description: "logging config commit"
+  listen: commit logging config

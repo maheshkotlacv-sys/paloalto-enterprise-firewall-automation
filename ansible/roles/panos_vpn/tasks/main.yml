@@ -1,0 +1,56 @@
+---
+- name: Create IKE crypto profile
+  paloaltonetworks.panos.panos_ike_crypto_profile:
+    provider: "{{ panos_provider }}"
+    name: "{{ ike_crypto_profile.name }}"
+    dh_group: "{{ ike_crypto_profile.dh_group }}"
+    authentication: "{{ ike_crypto_profile.authentication }}"
+    encryption: "{{ ike_crypto_profile.encryption }}"
+    lifetime_seconds: "{{ ike_crypto_profile.lifetime_seconds }}"
+
+- name: Create IPsec crypto profile
+  paloaltonetworks.panos.panos_ipsec_profile:
+    provider: "{{ panos_provider }}"
+    name: "{{ ipsec_crypto_profile.name }}"
+    authentication: "{{ ipsec_crypto_profile.authentication }}"
+    encryption: "{{ ipsec_crypto_profile.encryption }}"
+    lifetime_seconds: "{{ ipsec_crypto_profile.lifetime_seconds }}"
+    pfs: "{{ ipsec_crypto_profile.pfs }}"
+
+- name: Create IKE gateway
+  paloaltonetworks.panos.panos_ike_gateway:
+    provider: "{{ panos_provider }}"
+    name: "{{ ike_gateway.name }}"
+    protocol: "{{ ike_gateway.protocol }}"
+    interface: "{{ ike_gateway.interface }}"
+    peer_ip_value: "{{ vpn.peer_ip }}"
+    pre_shared_key: "{{ lookup('env', 'VPN_PRE_SHARED_KEY') }}"
+    ikev2_crypto_profile: "{{ ike_crypto_profile.name }}"
+    local_id_type: "{{ ike_gateway.local_id_type }}"
+    peer_id_type: "{{ ike_gateway.peer_id_type }}"
+
+- name: Create IPsec tunnel
+  paloaltonetworks.panos.panos_ipsec_tunnel:
+    provider: "{{ panos_provider }}"
+    name: "{{ ipsec_tunnel.name }}"
+    tunnel_interface: "{{ ipsec_tunnel.tunnel_interface }}"
+    ike_gtw_name: "{{ ike_gateway.name }}"
+    ipsec_profile: "{{ ipsec_crypto_profile.name }}"
+    copy_tos: "{{ ipsec_tunnel.copy_tos }}"
+    enable_tunnel_monitor: "{{ ipsec_tunnel.enable_tunnel_monitor }}"
+
+- name: Create static route for DC networks via VPN tunnel
+  paloaltonetworks.panos.panos_static_route:
+    provider: "{{ panos_provider }}"
+    name: "dc-net-{{ idx }}"
+    destination: "{{ item }}"
+    nexthop_type: next-vr
+    interface: "{{ ipsec_tunnel.tunnel_interface }}"
+  loop: "{{ vpn.remote_networks }}"
+  loop_control:
+    index_var: idx
+
+- name: Commit VPN configuration
+  paloaltonetworks.panos.panos_commit_firewall:
+    provider: "{{ panos_provider }}"
+    description: "VPN configured by Ansible"

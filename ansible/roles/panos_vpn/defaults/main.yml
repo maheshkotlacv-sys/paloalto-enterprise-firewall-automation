@@ -1,0 +1,8 @@
+---
+dc_edge_public_ip: "203.0.113.10"
+dc_edge_tunnel_ip: "169.254.0.2"
+tunnel_local_ip: "169.254.0.1/30"
+virtual_router: "default"
+dc_subnets:
+  - "10.100.0.0/16"
+  - "10.101.0.0/16"

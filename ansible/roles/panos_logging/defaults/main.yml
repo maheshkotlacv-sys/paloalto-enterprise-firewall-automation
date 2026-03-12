@@ -1,0 +1,3 @@
+---
+log_forwarding_profile_name: "default-log-forwarding"
+syslog_profile_name: "enterprise-syslog"

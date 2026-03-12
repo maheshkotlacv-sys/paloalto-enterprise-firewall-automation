@@ -1,0 +1,32 @@
+---
+# emergency rollback - reverts to last committed config
+# usage: ansible-playbook ansible/playbooks/rollback.yml -e "target_host=vmseries-aws-01"
+# this immediately discards all candidate config changes on the device
+
+- name: emergency rollback
+  hosts: "{{ target_host | default('aws_vmseries') }}"
+  gather_facts: false
+
+  pre_tasks:
+    - name: confirm rollback intent
+      ansible.builtin.pause:
+        prompt: |
+          WARNING: this will revert {{ inventory_hostname }} to last committed config.
+          type CONFIRM to proceed.
+      register: confirmation
+
+    - name: abort if not confirmed
+      ansible.builtin.fail:
+        msg: "rollback aborted - confirmation not received"
+      when: confirmation.user_input != 'CONFIRM'
+
+  tasks:
+    - name: revert to last committed config
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ panos_provider }}"
+        cmd: "load config partial from candidate-config mode discard"
+      register: revert_result
+
+    - name: log rollback event
+      ansible.builtin.debug:
+        msg: "ROLLBACK executed on {{ inventory_hostname }} at {{ ansible_date_time.iso8601 }}"
