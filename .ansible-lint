@@ -19,9 +19,6 @@ exclude_paths:
   - .git/
   - .github/
 
-roles_path:
-  - ansible/roles
-
 mock_modules:
   - paloaltonetworks.panos.panos_mgtconfig
   - paloaltonetworks.panos.panos_ntp
