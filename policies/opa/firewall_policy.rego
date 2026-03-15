@@ -1,10 +1,11 @@
 package firewall.security
 
+import future.keywords.contains
 import future.keywords.if
 import future.keywords.in
 
 # Block SSH from 0.0.0.0/0 to management security group
-deny[msg] if {
+deny contains msg if {
   some i
   rc := input.resource_changes[i]
   rc.type == "aws_security_group"
@@ -17,7 +18,7 @@ deny[msg] if {
 }
 
 # Block HTTPS management from 0.0.0.0/0
-deny[msg] if {
+deny contains msg if {
   some i
   rc := input.resource_changes[i]
   rc.type == "aws_security_group"
@@ -31,7 +32,7 @@ deny[msg] if {
 }
 
 # S3 bootstrap bucket must not be public
-deny[msg] if {
+deny contains msg if {
   some i
   rc := input.resource_changes[i]
   rc.type == "aws_s3_bucket_public_access_block"
@@ -41,7 +42,7 @@ deny[msg] if {
 }
 
 # VM-Series must use IMDSv2
-deny[msg] if {
+deny contains msg if {
   some i
   rc := input.resource_changes[i]
   rc.type == "aws_instance"
@@ -51,7 +52,7 @@ deny[msg] if {
 }
 
 # EBS root volume must be encrypted
-deny[msg] if {
+deny contains msg if {
   some i
   rc := input.resource_changes[i]
   rc.type == "aws_instance"

@@ -1,5 +1,5 @@
 ---
-antivirus_profile:
+panos_threat_profiles_antivirus:
   name: strict-av
   description: "Strict AV profile - block all threat categories"
   decoders:
@@ -13,7 +13,7 @@ antivirus_profile:
       action: reset-both
       wildfire_action: reset-both
 
-vulnerability_profile:
+panos_threat_profiles_vulnerability:
   name: strict-vuln
   description: "Strict vulnerability protection"
   rules:
@@ -28,7 +28,7 @@ vulnerability_profile:
       severity: [low, informational]
       action: default
 
-url_filtering_profile:
+panos_threat_profiles_url_filtering:
   name: strict-url
   description: "Block malicious categories, alert on risky"
   blocked_categories:
@@ -44,7 +44,7 @@ url_filtering_profile:
     - streaming-media
     - peer-to-peer
 
-wildfire_profile:
+panos_threat_profiles_wildfire:
   name: strict-wildfire
   description: "Submit all unknown files to WildFire"
   rules:
@@ -54,7 +54,7 @@ wildfire_profile:
       direction: both
       analysis: public-cloud
 
-security_profile_group:
+panos_threat_profiles_security_group:
   name: strict-security
   av: strict-av
   vulnerability: strict-vuln

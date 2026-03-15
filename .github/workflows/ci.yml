@@ -55,7 +55,7 @@ jobs:
           tar xzf conftest.tar.gz && sudo mv conftest /usr/local/bin/
       - name: Generate test input
         run: |
-          cat > /tmp/policy-input.json << JSONEOF
+          cat > /tmp/policy-input.json << 'JSONEOF'
           {
             "resource_changes": [
               {
@@ -98,25 +98,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
       - name: Check required files
         run: |
-          python3 - << PYEOF
-          import sys
-          required = [
-              "README.md", "LICENSE", "CONTRIBUTING.md", "SECURITY.md", "Makefile",
-              "terraform/main.tf", "terraform/variables.tf",
-              "ansible/playbooks/site.yml", "ansible/ansible.cfg",
-              "python/requirements.txt", "python/pan_rule_audit.py",
-              "python/pan_config_backup.py", "python/pan_compliance_report.py",
-              "policies/opa/firewall_policy.rego",
-              "docs/architecture.md", "docs/threat-model.md",
-          ]
-          missing = [f for f in required if not __import__("pathlib").Path(f).exists()]
-          if missing:
-              print("MISSING FILES:", missing)
-              sys.exit(1)
-          print(f"All {len(required)} required files present.")
-          PYEOF
+          for f in README.md LICENSE CONTRIBUTING.md SECURITY.md Makefile \
+                   terraform/main.tf terraform/variables.tf \
+                   ansible/playbooks/site.yml ansible/ansible.cfg \
+                   python/requirements.txt python/pan_rule_audit.py \
+                   python/pan_config_backup.py python/pan_compliance_report.py \
+                   policies/opa/firewall_policy.rego \
+                   docs/architecture.md docs/threat-model.md; do
+            if [ ! -f "$f" ]; then
+              echo "MISSING: $f"
+              exit 1
+            fi
+          done
+          echo "All required files present."

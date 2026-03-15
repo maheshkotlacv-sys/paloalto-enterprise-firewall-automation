@@ -3,7 +3,7 @@
 # threat and traffic deny logs go to siem, wildfire logs too
 # if you change syslog_server update group_vars/all.yml not here
 
-- name: create syslog server profile
+- name: Create syslog server profile
   paloaltonetworks.panos.panos_syslog_server_profile:
     provider: "{{ panos_provider }}"
     name: "enterprise-syslog"
@@ -13,11 +13,11 @@
     format: "BSD"
     facility: "LOG_USER"
 
-- name: create log forwarding profile
+- name: Create log forwarding profile
   paloaltonetworks.panos.panos_log_forwarding_profile:
     provider: "{{ panos_provider }}"
     name: "default-log-forwarding"
-    description: "fwd threat + deny traffic + wildfire to siem"
+    description: "Forward threat + deny traffic + wildfire to SIEM"
     match_rules:
       - name: "fwd-threat"
         log_type: "threat"
@@ -34,11 +34,11 @@
         filter: "All Logs"
         send_syslog: ["enterprise-syslog"]
         send_panorama: true
-  notify: commit logging config
+  notify: Commit logging config
 
-- name: configure panorama log forwarding
+- name: Configure Panorama log forwarding
   paloaltonetworks.panos.panos_panorama:
     provider: "{{ panos_provider }}"
     panorama_server: "{{ panorama_ip }}"
     panorama_server2: "{{ panorama_secondary_ip | default('') }}"
-  notify: commit logging config
+  notify: Commit logging config

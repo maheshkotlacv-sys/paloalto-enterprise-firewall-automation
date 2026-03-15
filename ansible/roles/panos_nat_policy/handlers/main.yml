@@ -1,6 +1,5 @@
 ---
-- name: commit nat policy
+- name: Commit NAT policy
   paloaltonetworks.panos.panos_commit_firewall:
     provider: "{{ panos_provider }}"
-    description: "nat policy commit"
-  listen: commit nat policy
+    description: "NAT policy commit"

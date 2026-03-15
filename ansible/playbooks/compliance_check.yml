@@ -3,30 +3,30 @@
   hosts: aws_vmseries:dc_firewalls
   gather_facts: false
   tasks:
-    - name: check panos version
+    - name: Check PAN-OS version
       paloaltonetworks.panos.panos_op:
         provider: "{{ panos_provider }}"
         cmd: "show system info"
       register: sys_info
 
-    - name: check management services are hardened
+    - name: Check management services are hardened
       paloaltonetworks.panos.panos_op:
         provider: "{{ panos_provider }}"
         cmd: "show system setting management-interface"
       register: mgmt_services
 
-    - name: fail if telnet is enabled
+    - name: Fail if telnet is enabled
       ansible.builtin.fail:
         msg: "COMPLIANCE FAILURE: telnet enabled on {{ inventory_hostname }}"
       when: "'Telnet' in mgmt_services.stdout and 'disabled' not in mgmt_services.stdout"
 
-    - name: check security policy has deny-all rule
+    - name: Check security policy has deny-all rule
       paloaltonetworks.panos.panos_op:
         provider: "{{ panos_provider }}"
         cmd: "show running security-policy"
       register: running_policy
       failed_when: "'DENY-ALL-CLEANUP' not in running_policy.stdout"
 
-    - name: compliance check result
+    - name: Compliance check result
       ansible.builtin.debug:
         msg: "{{ inventory_hostname }} passed compliance pre-check"

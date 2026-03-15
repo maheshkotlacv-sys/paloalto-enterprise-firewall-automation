@@ -1,0 +1,10 @@
+---
+# skip syntax-check because panos modules need a real device to validate against
+# skip var-naming for role vars that are shared across roles (e.g. address_objects from group_vars)
+skip_list:
+  - syntax-check[specific]
+  - syntax-check[all]
+
+# warn-only for these so pipeline doesnt hard-fail
+warn_list:
+  - var-naming[no-role-prefix]

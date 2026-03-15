@@ -1,19 +1,19 @@
 ---
-ike_crypto_profile:
+panos_vpn_ike_crypto_profile:
   name: ikev2-aes256-sha384
   dh_group: [group20]
   authentication: [sha384]
   encryption: [aes-256-gcm]
   lifetime_seconds: 28800
 
-ipsec_crypto_profile:
+panos_vpn_ipsec_crypto_profile:
   name: ipsec-aes256-gcm
   authentication: [none]
   encryption: [aes-256-gcm]
   lifetime_seconds: 3600
   pfs: group20
 
-ike_gateway:
+panos_vpn_ike_gateway:
   name: "dc-aws-ikegw"
   protocol: ikev2
   interface: ethernet1/1
@@ -21,7 +21,7 @@ ike_gateway:
   peer_id_type: ipaddr
   auth_type: pre-shared-key
 
-ipsec_tunnel:
+panos_vpn_ipsec_tunnel:
   name: "dc-aws-ipsec-tunnel"
   tunnel_interface: tunnel.1
   type: auto-key

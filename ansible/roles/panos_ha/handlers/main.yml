@@ -1,6 +1,6 @@
 ---
-# ha tasks notify "commit ha config" after any changes
-- name: commit ha config
+# HA tasks notify "Commit HA config" after any changes
+- name: Commit HA config
   paloaltonetworks.panos.panos_commit_firewall:
     provider: "{{ panos_provider }}"
-    description: "ha configuration commit"
+    description: "HA configuration commit"

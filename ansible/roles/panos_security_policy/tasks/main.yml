@@ -3,7 +3,7 @@
 # no any/any rules - every rule needs specific apps
 # all allow rules get threat prevention profile attached
 
-- name: create threat profile group
+- name: Create threat profile group
   paloaltonetworks.panos.panos_profile_group:
     provider: "{{ panos_provider }}"
     name: "enterprise-threat-prevention"
@@ -14,11 +14,11 @@
     data_filtering: "enterprise-data-filtering"
 
 # east-west trust traffic - internal services only
-- name: allow internal services within trust zone
+- name: Allow internal services within trust zone
   paloaltonetworks.panos.panos_security_rule:
     provider: "{{ panos_provider }}"
     rule_name: "ALLOW-TRUST-INTERNAL-SERVICES"
-    description: "internal services between trust segments - ad, dns, kerberos etc"
+    description: "Internal services between trust segments - AD, DNS, Kerberos etc"
     source_zone: ["TRUST"]
     destination_zone: ["TRUST"]
     source_ip: ["RFC1918-10", "RFC1918-172", "RFC1918-192"]
@@ -32,14 +32,14 @@
     profile_setting: "enterprise-threat-prevention"
     tag: ["internal-only"]
     location: "top"
-  notify: commit security policy
+  notify: Commit security policy
 
 # dc hybrid - traffic coming through vpn tunnel
-- name: allow dc vpn traffic to aws trust
+- name: Allow DC VPN traffic to AWS trust
   paloaltonetworks.panos.panos_security_rule:
     provider: "{{ panos_provider }}"
     rule_name: "ALLOW-VPN-TO-TRUST-DC-SERVICES"
-    description: "dc to aws - approved apps only"
+    description: "DC to AWS - approved apps only"
     source_zone: ["VPN-ZONE"]
     destination_zone: ["TRUST"]
     source_ip: ["DC-NETWORK"]
@@ -52,13 +52,13 @@
     log_setting: "default-log-forwarding"
     profile_setting: "enterprise-threat-prevention"
     tag: ["vpn-traffic"]
-  notify: commit security policy
+  notify: Commit security policy
 
-- name: allow aws trust traffic to dc
+- name: Allow AWS trust traffic to DC
   paloaltonetworks.panos.panos_security_rule:
     provider: "{{ panos_provider }}"
     rule_name: "ALLOW-TRUST-TO-VPN-AWS-SERVICES"
-    description: "aws workloads to dc - ad, file services"
+    description: "AWS workloads to DC - AD, file services"
     source_zone: ["TRUST"]
     destination_zone: ["VPN-ZONE"]
     source_ip: ["AWS-VPC-CIDR"]
@@ -71,14 +71,14 @@
     log_setting: "default-log-forwarding"
     profile_setting: "enterprise-threat-prevention"
     tag: ["vpn-traffic"]
-  notify: commit security policy
+  notify: Commit security policy
 
 # internet egress - approved apps, full inspection
-- name: allow trust internet egress
+- name: Allow trust internet egress
   paloaltonetworks.panos.panos_security_rule:
     provider: "{{ panos_provider }}"
     rule_name: "ALLOW-TRUST-INTERNET-EGRESS"
-    description: "outbound internet - web, dns, ntp, package managers"
+    description: "Outbound internet - web, DNS, NTP, package managers"
     source_zone: ["TRUST"]
     destination_zone: ["UNTRUST"]
     source_ip: ["any"]
@@ -91,14 +91,14 @@
     log_setting: "default-log-forwarding"
     profile_setting: "enterprise-threat-prevention"
     tag: ["internet-access"]
-  notify: commit security policy
+  notify: Commit security policy
 
 # explicit deny with logging - dont rely on default deny
-- name: deny all uninitiated inbound from untrust
+- name: Deny all uninitiated inbound from untrust
   paloaltonetworks.panos.panos_security_rule:
     provider: "{{ panos_provider }}"
     rule_name: "DENY-ALL-UNTRUST-INBOUND"
-    description: "catch uninitiated inbound - log it"
+    description: "Catch uninitiated inbound - log it"
     source_zone: ["UNTRUST"]
     destination_zone: ["TRUST", "DMZ", "VPN-ZONE", "MGMT"]
     source_ip: ["any"]
@@ -111,14 +111,14 @@
     log_setting: "default-log-forwarding"
     tag: ["high-risk"]
     location: "bottom"
-  notify: commit security policy
+  notify: Commit security policy
 
 # cleanup - everything unmatched gets logged
-- name: cleanup deny rule
+- name: Cleanup deny rule
   paloaltonetworks.panos.panos_security_rule:
     provider: "{{ panos_provider }}"
     rule_name: "DENY-ALL-CLEANUP"
-    description: "catch-all - deny and log anything not matched above"
+    description: "Catch-all deny and log anything not matched above"
     source_zone: ["any"]
     destination_zone: ["any"]
     source_ip: ["any"]
@@ -131,4 +131,4 @@
     log_setting: "default-log-forwarding"
     tag: ["high-risk"]
     location: "bottom"
-  notify: commit security policy
+  notify: Commit security policy

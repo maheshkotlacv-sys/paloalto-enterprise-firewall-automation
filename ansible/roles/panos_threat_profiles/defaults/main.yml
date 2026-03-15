@@ -1,4 +1,4 @@
 ---
 # override these if your wildfire region is different
-wildfire_cloud: "public-cloud"
-threat_profile_group_name: "enterprise-threat-prevention"
+panos_threat_profiles_wildfire_cloud: "public-cloud"
+panos_threat_profiles_group_name: "enterprise-threat-prevention"

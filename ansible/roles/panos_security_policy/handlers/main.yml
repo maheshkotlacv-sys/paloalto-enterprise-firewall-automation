@@ -1,5 +1,5 @@
 ---
-- name: commit security policy
+- name: Commit security policy
   paloaltonetworks.panos.panos_commit_firewall:
     provider: "{{ panos_provider }}"
     description: "Security policy updated by Ansible"

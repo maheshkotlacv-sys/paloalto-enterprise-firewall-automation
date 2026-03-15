@@ -3,11 +3,11 @@
 # all spoke traffic leaving to internet gets SNATed to untrust interface IP
 # add dnat rules here if you expose internal services
 
-- name: create source nat rule for spoke egress
-  paloaltonetworks.panos.panos_nat_rule:
+- name: Create source NAT rule for spoke egress
+  paloaltonetworks.panos.panos_nat_rule2:
     provider: "{{ panos_provider }}"
     rule_name: "SNAT-TRUST-TO-INTERNET"
-    description: "snat spoke traffic going to internet via untrust"
+    description: "SNAT spoke traffic going to internet via untrust"
     source_zone: ["TRUST"]
     destination_zone: ["UNTRUST"]
     source_ip: ["RFC1918-10", "RFC1918-172", "RFC1918-192", "AWS-VPC-CIDR"]
@@ -16,18 +16,18 @@
     snat_type: "dynamic-ip-and-port"
     snat_interface: "ethernet1/1"
     snat_interface_ip: []
-  notify: commit nat policy
+  notify: Commit NAT policy
 
 # vpn traffic doesnt get natted - preserve source ip for dc-side logging
-- name: no-nat rule for vpn zone traffic
-  paloaltonetworks.panos.panos_nat_rule:
+- name: Create No-NAT rule for VPN zone traffic
+  paloaltonetworks.panos.panos_nat_rule2:
     provider: "{{ panos_provider }}"
     rule_name: "NONAT-VPN-TRAFFIC"
-    description: "dont nat traffic going to/from dc over vpn"
+    description: "Dont NAT traffic going to/from DC over VPN"
     source_zone: ["TRUST", "VPN-ZONE"]
     destination_zone: ["VPN-ZONE", "TRUST"]
     source_ip: ["any"]
     destination_ip: ["DC-NETWORK", "AWS-VPC-CIDR"]
     service: "any"
     nat_type: "no-nat"
-  notify: commit nat policy
+  notify: Commit NAT policy

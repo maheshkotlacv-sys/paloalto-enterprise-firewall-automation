@@ -3,19 +3,19 @@
 # validates commit job before push - stops bad configs reaching devices
 # if push fails check device group names in panorama_push/defaults/main.yml
 
-- name: commit panorama config
+- name: Commit Panorama config
   paloaltonetworks.panos.panos_commit_panorama:
     provider: "{{ panorama_provider }}"
-    description: "ansible commit - {{ ansible_date_time.iso8601 }}"
+    description: "Ansible commit - {{ ansible_date_time.iso8601 }}"
   register: panorama_commit
 
-- name: verify commit job id exists
+- name: Verify commit job ID exists
   ansible.builtin.assert:
     that:
       - panorama_commit.jobid is defined
-    fail_msg: "panorama commit failed, aborting push"
+    fail_msg: "Panorama commit failed, aborting push"
 
-- name: wait for commit to finish
+- name: Wait for commit to finish
   paloaltonetworks.panos.panos_op:
     provider: "{{ panorama_provider }}"
     cmd: "show jobs id {{ panorama_commit.jobid }}"
@@ -24,17 +24,17 @@
   retries: 30
   delay: 10
 
-- name: push to device groups
+- name: Push to device groups
   paloaltonetworks.panos.panos_commit_push:
     provider: "{{ panorama_provider }}"
     style: "device group"
     name: "{{ item }}"
-    description: "push from ansible - {{ ansible_date_time.iso8601 }}"
+    description: "Push from Ansible - {{ ansible_date_time.iso8601 }}"
     include_template: true
   loop: "{{ panorama_push_device_groups }}"
   register: push_results
 
-- name: wait for push jobs to finish
+- name: Wait for push jobs to finish
   paloaltonetworks.panos.panos_op:
     provider: "{{ panorama_provider }}"
     cmd: "show jobs id {{ item.jobid }}"
@@ -45,7 +45,7 @@
   loop: "{{ push_results.results }}"
   when: item.jobid is defined
 
-- name: push summary
+- name: Push summary
   ansible.builtin.debug:
-    msg: "pushed to {{ item.item }} - job {{ item.jobid | default('n/a') }}"
+    msg: "Pushed to {{ item.item }} - job {{ item.jobid | default('n/a') }}"
   loop: "{{ push_results.results }}"

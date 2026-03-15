@@ -8,25 +8,25 @@
   gather_facts: false
 
   pre_tasks:
-    - name: confirm rollback intent
+    - name: Confirm rollback intent
       ansible.builtin.pause:
         prompt: |
           WARNING: this will revert {{ inventory_hostname }} to last committed config.
           type CONFIRM to proceed.
       register: confirmation
 
-    - name: abort if not confirmed
+    - name: Abort if not confirmed
       ansible.builtin.fail:
         msg: "rollback aborted - confirmation not received"
       when: confirmation.user_input != 'CONFIRM'
 
   tasks:
-    - name: revert to last committed config
+    - name: Revert to last committed config
       paloaltonetworks.panos.panos_op:
         provider: "{{ panos_provider }}"
         cmd: "load config partial from candidate-config mode discard"
       register: revert_result
 
-    - name: log rollback event
+    - name: Log rollback event
       ansible.builtin.debug:
         msg: "ROLLBACK executed on {{ inventory_hostname }} at {{ ansible_date_time.iso8601 }}"

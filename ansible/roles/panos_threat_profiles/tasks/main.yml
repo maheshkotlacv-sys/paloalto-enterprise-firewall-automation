@@ -3,11 +3,11 @@
 # all tuned to block on critical/high, alert or default on lower severity
 # grouped together in profile group for easy attachment to security rules
 
-- name: create antivirus profile
+- name: Create antivirus profile
   paloaltonetworks.panos.panos_antivirus_security_profile:
     provider: "{{ panos_provider }}"
     name: "enterprise-av-profile"
-    description: "block on all decoders, wildfire inline scan"
+    description: "Block on all decoders, WildFire inline scan"
     botnet_lists:
       - name: "default-paloalto-dns"
         action: "sinkhole"
@@ -25,13 +25,13 @@
       - name: "ftp"
         action: "reset-both"
         wildfire_action: "reset-both"
-  notify: commit threat profiles
+  notify: Commit threat profiles
 
-- name: create vulnerability profile
+- name: Create vulnerability profile
   paloaltonetworks.panos.panos_vulnerability_profile:
     provider: "{{ panos_provider }}"
     name: "enterprise-vuln-profile"
-    description: "block critical+high, default on medium/low"
+    description: "Block critical+high, default on medium/low"
     rules:
       - name: "block-critical-high"
         action: "reset-both"
@@ -50,13 +50,13 @@
         threat_name: "any"
         host: "any"
         category: "any"
-  notify: commit threat profiles
+  notify: Commit threat profiles
 
-- name: create url filtering profile
+- name: Create URL filtering profile
   paloaltonetworks.panos.panos_url_filter:
     provider: "{{ panos_provider }}"
     name: "enterprise-url-profile"
-    description: "block malicious categories, alert on high risk"
+    description: "Block malicious categories, alert on high risk"
     action: "allow"
     block_list_action: "block"
     allow_list_action: "allow"
@@ -79,13 +79,13 @@
     credential_enforcement:
       mode: "ip-user-mapping"
       log_severity: "medium"
-  notify: commit threat profiles
+  notify: Commit threat profiles
 
-- name: create wildfire profile
+- name: Create WildFire profile
   paloaltonetworks.panos.panos_wildfire_analysis_profile:
     provider: "{{ panos_provider }}"
     name: "enterprise-wildfire-profile"
-    description: "submit all file types both directions"
+    description: "Submit all file types both directions"
     rules:
       - name: "forward-all-files"
         direction: "both"
@@ -99,10 +99,10 @@
           - "apk"
           - "elf"
           - "email-link"
-  notify: commit threat profiles
+  notify: Commit threat profiles
 
 # bundle all profiles together - attach this group to security rules
-- name: create profile group
+- name: Create profile group
   paloaltonetworks.panos.panos_profile_group:
     provider: "{{ panos_provider }}"
     name: "enterprise-threat-prevention"
@@ -110,4 +110,4 @@
     vulnerability: "enterprise-vuln-profile"
     url_filtering: "enterprise-url-profile"
     wildfire_analysis: "enterprise-wildfire-profile"
-  notify: commit threat profiles
+  notify: Commit threat profiles
