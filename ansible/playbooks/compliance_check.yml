@@ -1,5 +1,5 @@
 ---
-- name: compliance pre-check before deployment
+- name: Compliance pre-check before deployment
   hosts: aws_vmseries:dc_firewalls
   gather_facts: false
   tasks:

@@ -2,7 +2,7 @@
 # new device onboarding
 # usage: ansible-playbook ansible/playbooks/onboard_device.yml -e "target_host=vmseries-aws-03"
 
-- name: onboard new vm-series device
+- name: Onboard new vm-series device
   hosts: "{{ target_host }}"
   gather_facts: false
 

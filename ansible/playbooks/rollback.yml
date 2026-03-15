@@ -3,7 +3,7 @@
 # usage: ansible-playbook ansible/playbooks/rollback.yml -e "target_host=vmseries-aws-01"
 # this immediately discards all candidate config changes on the device
 
-- name: emergency rollback
+- name: Emergency rollback
   hosts: "{{ target_host | default('aws_vmseries') }}"
   gather_facts: false
 

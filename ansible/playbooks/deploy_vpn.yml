@@ -1,11 +1,11 @@
 ---
-- name: deploy dc-to-aws vpn config
+- name: Deploy DC-to-AWS vpn config
   hosts: aws_vmseries:dc_firewalls
   gather_facts: false
   roles:
     - panos_vpn
 
-- name: verify vpn tunnel status
+- name: Verify VPN tunnel status
   hosts: aws_vmseries
   gather_facts: false
   tasks:

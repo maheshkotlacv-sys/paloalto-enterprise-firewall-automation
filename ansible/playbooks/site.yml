@@ -2,43 +2,43 @@
 # main playbook - runs all roles in order
 # dry run first: ansible-playbook playbooks/site.yml -i inventory/hosts.yml --check
 
-- name: baseline hardening
+- name: Baseline hardening
   hosts: aws_vmseries:dc_firewalls
   gather_facts: false
   roles:
     - panos_baseline
 
-- name: threat prevention profiles
+- name: Threat prevention profiles
   hosts: aws_vmseries:dc_firewalls
   gather_facts: false
   roles:
     - panos_threat_profiles
 
-- name: logging config
+- name: Logging config
   hosts: aws_vmseries:dc_firewalls
   gather_facts: false
   roles:
     - panos_logging
 
-- name: nat policy
+- name: NAT policy
   hosts: aws_vmseries:dc_firewalls
   gather_facts: false
   roles:
     - panos_nat_policy
 
-- name: security policy
+- name: Security policy
   hosts: aws_vmseries:dc_firewalls
   gather_facts: false
   roles:
     - panos_security_policy
 
-- name: dc-to-aws vpn
+- name: DC-to-AWS VPN
   hosts: aws_vmseries
   gather_facts: false
   roles:
     - panos_vpn
 
-- name: panorama commit and push
+- name: Panorama commit and push
   hosts: panorama
   gather_facts: false
   roles:
