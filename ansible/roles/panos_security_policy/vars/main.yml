@@ -1,0 +1,55 @@
+---
+address_objects:
+  - { name: corp-rfc1918,     value: "10.0.0.0/8",    description: "Corporate RFC1918 summary" }
+  - { name: aws-security-vpc, value: "100.64.0.0/16", description: "AWS Security VPC CIDR" }
+  - { name: dc-servers-prod,  value: "10.0.10.0/24",  description: "DC production servers" }
+  - { name: dc-users,         value: "10.0.20.0/22",  description: "Corporate users" }
+
+address_groups:
+  - name: internal-networks
+    members: [corp-rfc1918, aws-security-vpc]
+    description: All internal networks
+
+security_rules:
+  - name: allow-dc-to-aws-trusted
+    description: "Allow DC servers to AWS workloads over VPN"
+    source_zone: [vpn-tunnel]
+    dest_zone: [trust]
+    source_ip: [dc-servers-prod]
+    dest_ip: [aws-security-vpc]
+    application: [ssl, web-browsing, msrpc, active-directory]
+    service: application-default
+    action: allow
+    profile_group: strict-security
+
+  - name: allow-outbound-saas
+    description: "Allow users to approved SaaS - URL filtering enforces category"
+    source_zone: [trust]
+    dest_zone: [untrust]
+    source_ip: [dc-users]
+    dest_ip: [any]
+    application: [ssl, web-browsing, dns]
+    service: application-default
+    action: allow
+    profile_group: strict-security
+
+  - name: allow-aws-management
+    description: "Allow management traffic to AWS infrastructure"
+    source_zone: [vpn-tunnel]
+    dest_zone: [trust]
+    source_ip: [dc-servers-prod]
+    dest_ip: [aws-security-vpc]
+    application: [ssh, https]
+    service: application-default
+    action: allow
+    profile_group: strict-security
+
+  - name: deny-any-any-log
+    description: "Explicit deny-all with full logging - must be last"
+    source_zone: [any]
+    dest_zone: [any]
+    source_ip: [any]
+    dest_ip: [any]
+    application: [any]
+    service: any
+    action: deny

@@ -1,0 +1,6 @@
+---
+# threat profile tasks notify "commit threat profiles" when changed
+- name: commit threat profiles
+  paloaltonetworks.panos.panos_commit_firewall:
+    provider: "{{ panos_provider }}"
+    description: "threat prevention profiles commit"

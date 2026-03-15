@@ -1,0 +1,4 @@
+---
+panorama_push_device_groups:
+  - "aws-vm-series"
+  - "dc-edge"

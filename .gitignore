@@ -1,0 +1,38 @@
+# Terraform
+**/.terraform/
+**/.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+*.tfplan
+tf.plan
+plan.json
+override.tf
+
+# Terraform sensitive vars — example files are committed
+terraform.tfvars
+!terraform/terraform.tfvars.example
+
+# Ansible
+*.retry
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Reports (generated output)
+*.html
+!docs/**/*.html
+
+# Secrets
+.env
+.envrc
+*.pem
+*.key
+
+# IDE
+.idea/
+.vscode/
+.DS_Store

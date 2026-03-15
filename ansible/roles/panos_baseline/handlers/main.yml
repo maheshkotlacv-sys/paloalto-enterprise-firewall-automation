@@ -1,0 +1,6 @@
+---
+# baseline tasks notify "commit config" — this handler catches it
+- name: commit config
+  paloaltonetworks.panos.panos_commit_firewall:
+    provider: "{{ panos_provider }}"
+    description: "baseline hardening commit"

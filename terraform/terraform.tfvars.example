@@ -1,0 +1,34 @@
+project_name = "pa-enterprise"
+environment  = "prod"
+aws_region   = "us-east-1"
+
+# Networking — replace with actual VPC/subnet IDs
+vpc_id            = "vpc-0123456789abcdef0"
+mgmt_subnet_id    = "subnet-mgmt-placeholder"
+untrust_subnet_id = "subnet-untrust-placeholder"
+trust_subnet_id   = "subnet-trust-placeholder"
+ha_subnet_id      = "subnet-ha-placeholder"
+
+# VM-Series
+vm_series_ami           = "ami-placeholder"
+vm_series_instance_type = "m5.xlarge"
+key_pair_name           = "pa-enterprise-keypair"
+
+# Bootstrap
+bootstrap_xml_path = "../bootstrap/config/bootstrap.xml"
+
+# AZs for HA pair
+vm_series_primary_az   = "us-east-1a"
+vm_series_secondary_az = "us-east-1b"
+
+# Management access — jump host or panorama IPs only
+allowed_mgmt_cidrs = ["10.0.0.0/8"]
+
+# Panorama — consume from environment variables in CI, not plain text
+panorama_hostname = "panorama.corp.example.com"
+# panorama_username — set via TF_VAR_panorama_username env var
+# panorama_password — set via TF_VAR_panorama_password env var
+
+# VPN — leave empty to skip customer gateway creation
+vpn_peer_ip = "203.0.113.1"
+# vpn_psk — set via TF_VAR_vpn_psk env var

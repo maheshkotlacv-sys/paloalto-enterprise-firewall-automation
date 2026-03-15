@@ -1,0 +1,44 @@
+---
+# syslog + panorama log forwarding
+# threat and traffic deny logs go to siem, wildfire logs too
+# if you change syslog_server update group_vars/all.yml not here
+
+- name: create syslog server profile
+  paloaltonetworks.panos.panos_syslog_server_profile:
+    provider: "{{ panos_provider }}"
+    name: "enterprise-syslog"
+    server: "{{ syslog_server }}"
+    transport: "{{ syslog_transport }}"
+    port: "{{ syslog_port }}"
+    format: "BSD"
+    facility: "LOG_USER"
+
+- name: create log forwarding profile
+  paloaltonetworks.panos.panos_log_forwarding_profile:
+    provider: "{{ panos_provider }}"
+    name: "default-log-forwarding"
+    description: "fwd threat + deny traffic + wildfire to siem"
+    match_rules:
+      - name: "fwd-threat"
+        log_type: "threat"
+        filter: "All Logs"
+        send_syslog: ["enterprise-syslog"]
+        send_panorama: true
+      - name: "fwd-traffic-deny"
+        log_type: "traffic"
+        filter: "( action eq deny )"
+        send_syslog: ["enterprise-syslog"]
+        send_panorama: true
+      - name: "fwd-wildfire"
+        log_type: "wildfire"
+        filter: "All Logs"
+        send_syslog: ["enterprise-syslog"]
+        send_panorama: true
+  notify: commit logging config
+
+- name: configure panorama log forwarding
+  paloaltonetworks.panos.panos_panorama:
+    provider: "{{ panos_provider }}"
+    panorama_server: "{{ panorama_ip }}"
+    panorama_server2: "{{ panorama_secondary_ip | default('') }}"
+  notify: commit logging config

@@ -1,0 +1,41 @@
+---
+# new device onboarding
+# usage: ansible-playbook ansible/playbooks/onboard_device.yml -e "target_host=vmseries-aws-03"
+
+- name: onboard new vm-series device
+  hosts: "{{ target_host }}"
+  gather_facts: false
+
+  pre_tasks:
+    - name: verify device is reachable
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ panos_provider }}"
+        cmd: "show system info"
+      register: sys_info
+      retries: 10
+      delay: 30
+      until: sys_info.rc == 0
+
+    - name: verify panos version meets minimum
+      ansible.builtin.fail:
+        msg: "panos version must be 10.2 or higher"
+      when: "'sw-version: 10.' not in sys_info.stdout and 'sw-version: 11.' not in sys_info.stdout"
+
+  roles:
+    - panos_baseline
+    - panos_threat_profiles
+    - panos_security_policy
+    - panos_nat_policy
+    - panos_vpn
+    - panos_logging
+
+  post_tasks:
+    - name: register device with panorama
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ panorama_provider }}"
+        cmd: "request batch license info"
+      delegate_to: "{{ groups['panorama'][0] }}"
+
+    - name: confirm successful onboarding
+      ansible.builtin.debug:
+        msg: "device {{ inventory_hostname }} onboarded at {{ ansible_date_time.iso8601 }}"

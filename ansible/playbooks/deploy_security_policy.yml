@@ -1,0 +1,13 @@
+---
+# Deploy security policy only — used for policy-only updates without full site run
+- name: Deploy security policy update
+  hosts: "{{ target | default('aws_vmseries') }}"
+  gather_facts: false
+  roles:
+    - panos_security_policy
+
+- name: Push updated policy via Panorama
+  hosts: panorama
+  gather_facts: false
+  roles:
+    - panorama_push

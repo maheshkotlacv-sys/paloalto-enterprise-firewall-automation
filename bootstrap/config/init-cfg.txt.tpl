@@ -1,0 +1,14 @@
+type=dhcp-client
+ip-address=
+default-gateway=
+netmask=
+ipv6-address=
+ipv6-default-gateway=
+hostname=${hostname}
+panorama-server=${panorama_server}
+panorama-server-2=${panorama_server_2}
+tplname=${tplname}
+dgname=${dgname}
+vm-auth-key=${vm_auth_key}
+authcodes=
+op-command-modes=
